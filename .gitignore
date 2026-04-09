@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Playwright artifacts
+playwright-report/
+test-results/
+blob-report/
+playwright/.auth/
+
+# OS files
+.DS_Store
