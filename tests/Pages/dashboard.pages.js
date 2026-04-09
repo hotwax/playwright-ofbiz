@@ -21,7 +21,10 @@ class DashboardPage {
     async clickQuickCheckout() {
         const btn = this.quickCheckoutButton.first();
         await btn.scrollIntoViewIfNeeded();
-        await btn.click();
+        await Promise.all([
+            this.page.waitForURL(/\/ecommerce\/control\/quickcheckout/),
+            btn.click(),
+        ]);
     }
 }
 
