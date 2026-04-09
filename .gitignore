@@ -14,3 +14,18 @@ playwright/.auth/
 
 # OS files
 .DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Temporary cache
+.cache/
