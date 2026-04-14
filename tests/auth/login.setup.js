@@ -21,6 +21,25 @@ setup("login and save the state", async ({ page }) => {
   // Open the login page.
   await page.goto("/ecommerce/control/checkLogin/main");
 
+  // Handle GDPR Cookies Modal
+  try {
+    const gdprModal = page.locator('#bs-gdpr-cookies-modal');
+    await gdprModal.waitFor({ state: 'visible', timeout: 3000 });
+    
+    const agreeBtn = gdprModal.locator('button', { hasText: /Agree|Accept|Ok|Allow/i }).first();
+    if (await agreeBtn.isVisible()) {
+      await agreeBtn.click();
+    } else {
+      await gdprModal.locator('.modal-footer button').first().click();
+    }
+    
+    // Ensure the modal overlay disappears entirely before proceeding
+    await gdprModal.waitFor({ state: 'hidden', timeout: 3000 });
+  } catch (e) {
+    // Ignore if modal doesn't appear
+    console.log("No GDPR modal appeared");
+  }
+
   // Enter the login credentials from .env.
   await page.fill("#userName", USERNAME);
   await page.fill("#password", PASSWORD);
