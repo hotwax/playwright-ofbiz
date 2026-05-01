@@ -11,6 +11,10 @@ playwright-report/
 test-results/
 blob-report/
 playwright/.auth/
+allure-results/
+allure-report/
+monocart-report/
+junit-results/
 
 # OS files
 .DS_Store

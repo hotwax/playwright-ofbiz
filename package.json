@@ -8,11 +8,23 @@
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
-    "report": "playwright show-report"
+    "test:report": "npm test || npm run report:html",
+    "zip-report": "zip -r playwright-report.zip playwright-report",
+    "report:html": "playwright show-report --port 0",
+    "report:allure": "npm run allure:report",
+    "report:monocart": "open monocart-report/index.html",
+    "report:junit": "cat junit-results/results.xml",
+    "allure:generate": "allure generate allure-results --clean -o allure-report",
+    "allure:open": "allure open allure-report",
+    "allure:report": "npm run allure:generate && npm run allure:open",
+    "allure:clear": "rm -rf allure-results allure-report playwright-report monocart-report junit-results"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.2",
     "@types/node": "^24.6.0",
-    "dotenv": "^17.4.1"
+    "allure-commandline": "^2.38.1",
+    "allure-playwright": "^3.7.1",
+    "dotenv": "^17.4.1",
+    "monocart-reporter": "^2.10.1"
   }
 }
