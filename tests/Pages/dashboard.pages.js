@@ -14,17 +14,22 @@ class DashboardPage {
 
     async clickAddToCart() {
         const btn = this.addToCartButton.first();
-        await btn.scrollIntoViewIfNeeded();
+
+        // Add the first available product to the cart.
+        // The site may refresh after this click, so wait for the page to settle.
+        await expect(btn).toBeVisible();
         await btn.click();
+        await this.page.waitForLoadState("domcontentloaded");
     }
 
     async clickQuickCheckout() {
         const btn = this.quickCheckoutButton.first();
-        await btn.scrollIntoViewIfNeeded();
-        await Promise.all([
-            this.page.waitForURL(/\/ecommerce\/control\/quickcheckout/),
-            btn.click(),
-        ]);
+
+        // Open quick checkout from the cart summary.
+        // Playwright scrolls before clicking, so no manual scroll is needed here.
+        await expect(btn).toBeVisible();
+        await btn.click();
+        await expect(this.page).toHaveURL(/\/ecommerce\/control\/quickcheckout/);
     }
 }
 

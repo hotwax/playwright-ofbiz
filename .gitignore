@@ -11,6 +11,15 @@ playwright-report/
 test-results/
 blob-report/
 playwright/.auth/
+allure-results/
+allure-report/
+monocart-report/
+junit-results/
+custom-report/*
+!custom-report/index.html
+
+# Zipped artifacts
+*.zip
 
 # OS files
 .DS_Store

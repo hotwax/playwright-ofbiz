@@ -7,14 +7,30 @@ const STORAGE_STATE = "playwright/.auth/user.json";
 
 module.exports = defineConfig({
   testDir: "./tests",
-  fullyParallel: true,
+  // These tests use the same OFBiz user and cart, so run them one at a time.
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: [["list"], ["html", { open: "never" }]],
+  workers: 1,
+  reporter: [
+    ["list"],
+    ["html", { open: "never", outputFolder: "playwright-report" }],
+    ["allure-playwright", { outputFolder: "allure-results" }],
+    ["monocart-reporter", { 
+        name: "OFBiz Test Report", 
+        outputFile: "monocart-report/index.html",
+        globalMetadata: {
+            "Release": "v1.0.0-beta",
+            "Environment": "UAT",
+            "Execution Date": new Date().toLocaleString()
+        }
+    }],
+    ["junit", { outputFile: "junit-results/results.xml" }],
+    ["./reporters/custom-summary-reporter.js"]
+  ],
   use: {
     baseURL: BASE_URL,
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure"
   },

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OFBiz Execution Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --card-bg: #161b22;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent-passed: #238636;
+            --accent-observation: #d29922;
+            --accent-failed: #da3633;
+            --accent-primary: #58a6ff;
+            --border: #30363d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-primary); padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; }
+        h1 { font-size: 2rem; font-weight: 700; color: var(--accent-primary); }
+
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+
+        .card { background: var(--card-bg); border-radius: 0.75rem; border: 1px solid var(--border); padding: 1.5rem; }
+        .stats-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-box { text-align: center; }
+        .stat-val { font-size: 1.5rem; font-weight: 700; }
+        .stat-lab { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; }
+
+        .chart-container { height: 200px; }
+
+        .results-list { display: flex; flex-direction: column; gap: 1rem; }
+        .test-item { background: var(--card-bg); border-radius: 0.5rem; border: 1px solid var(--border); overflow: hidden; }
+        .test-header { padding: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+        .test-header:hover { background: rgba(255,255,255,0.02); }
+
+        .test-info { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
+        .test-title { font-weight: 600; font-size: 1rem; }
+        .test-meta { display: flex; gap: 0.5rem; align-items: center; }
+        .badge { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600; }
+        .badge.module { background: #1f6feb; color: white; }
+        .badge.passed { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 1px solid #238636; }
+        .badge.observation { background: rgba(210, 153, 34, 0.2); color: #d29922; border: 1px solid #9e7a1c; }
+        .badge.failed { background: rgba(218, 54, 51, 0.2); color: #f85149; border: 1px solid #da3633; }
+
+        .test-details { padding: 0 1rem 1rem 1rem; display: none; border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 1rem; }
+        .test-details.open { display: block; }
+
+        .scenario-desc { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; font-style: italic; }
+        
+        .steps-list { margin-bottom: 1rem; }
+        .step-item { font-size: 0.8rem; padding: 0.25rem 0; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .step-status { font-weight: 600; }
+        .step-status.passed { color: var(--accent-passed); }
+        .step-status.failed { color: var(--accent-failed); }
+
+        .artifacts { display: flex; gap: 0.5rem; }
+        .btn { padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-decoration: none; cursor: pointer; border: 1px solid var(--border); background: #21262d; color: var(--text-primary); }
+        .btn:hover { background: #30363d; }
+        .btn-trace { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+        .remark { background: rgba(210, 153, 34, 0.1); border-left: 3px solid var(--accent-observation); padding: 0.75rem; font-size: 0.85rem; color: #e3b341; margin-top: 1rem; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>OFBiz Execution Dashboard</h1>
+                <p id="run-time" style="color: var(--text-secondary); font-size: 0.85rem;"></p>
+            </div>
+            <div class="artifacts">
+                <button class="btn" onclick="window.location.reload()">Refresh Dashboard</button>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="stats-summary">
+                    <div class="stat-box"><div class="stat-val" id="stat-total">-</div><div class="stat-lab">Total</div></div>
+                    <div class="stat-box"><div class="stat-val" style="color:var(--accent-passed)" id="stat-passed">-</div><div class="stat-lab">Passed</div></div>
+                    <div class="stat-box"><div class="stat-val" style="color:var(--accent-observation)" id="stat-obs">-</div><div class="stat-lab">Obs</div></div>
+                    <div class="stat-box"><div class="stat-val" style="color:var(--accent-failed)" id="stat-failed">-</div><div class="stat-lab">Failed</div></div>
+                </div>
+                <div class="results-list" id="results-list"></div>
+            </div>
+            <div class="card">
+                <h3 style="font-size: 0.9rem; margin-bottom: 1rem; color: var(--text-secondary)">Run History Trend</h3>
+                <div class="chart-container">
+                    <canvas id="historyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function init() {
+            try {
+                const res = await fetch('data.json');
+                const data = await res.json();
+                
+                document.getElementById('run-time').innerText = `Latest Run: ${new Date(data.timestamp).toLocaleString()}`;
+                document.getElementById('stat-total').innerText = data.summary.total;
+                document.getElementById('stat-passed').innerText = data.summary.passed;
+                document.getElementById('stat-obs').innerText = data.summary.observations;
+                document.getElementById('stat-failed').innerText = data.summary.failed;
+
+                renderList(data.tests);
+                renderChart(data.history);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderList(tests) {
+            const list = document.getElementById('results-list');
+            tests.forEach(test => {
+                const statusClass = test.status === 'Passed with Observation' ? 'observation' : test.status.toLowerCase();
+                const div = document.createElement('div');
+                div.className = 'test-item';
+                div.innerHTML = `
+                    <div class="test-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                        <div class="test-info">
+                            <div class="test-meta">
+                                <span class="badge module">${test.module}</span>
+                                <span class="badge ${statusClass}">${test.status}</span>
+                            </div>
+                            <div class="test-title">${test.summary}</div>
+                        </div>
+                        <div style="color: var(--text-secondary)">${(test.duration/1000).toFixed(1)}s ▾</div>
+                    </div>
+                    <div class="test-details">
+                        ${test.description ? `<div class="scenario-desc">${test.description}</div>` : ''}
+                        <div class="steps-list">
+                            ${test.steps.map(s => `
+                                <div class="step-item">
+                                    <span>${s.title}</span>
+                                    <span class="step-status ${s.status}">${s.status}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="artifacts">
+                            ${test.artifacts.screenshot ? `<a href="${test.artifacts.screenshot}" target="_blank" class="btn">Screenshot</a>` : ''}
+                            ${test.artifacts.trace ? `<a href="https://trace.playwright.dev/?trace=${window.location.origin}/${test.artifacts.trace}" target="_blank" class="btn btn-trace">Open Trace</a>` : ''}
+                        </div>
+                        ${test.remark ? `<div class="remark"><strong>Observation:</strong> ${test.remark}</div>` : ''}
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function renderChart(history) {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: history.map((_, i) => `Run ${i+1}`),
+                    datasets: [
+                        { label: 'Passed', data: history.map(h => h.passed), borderColor: '#238636', tension: 0.3 },
+                        { label: 'Failed', data: history.map(h => h.failed), borderColor: '#da3633', tension: 0.3 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#30363d' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
