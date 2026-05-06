@@ -15,7 +15,8 @@ allure-results/
 allure-report/
 monocart-report/
 junit-results/
-custom-report/
+custom-report/*
+!custom-report/index.html
 
 # Zipped artifacts
 *.zip
