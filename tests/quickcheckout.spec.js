@@ -22,6 +22,10 @@ test.describe("Quick Checkout Tests", () => {
     test.setTimeout(60000);
     const stepDelay = testInfo.project.use.headless === false ? 2000 : 0;
     const { quickCheckoutPage } = await openQuickCheckout(page);
+    test.info().annotations.push({
+      type: "description",
+      description: "End-to-end checkout flow: selecting shipping method, choosing cash on delivery, and verifying the final order review page."
+    });
     if (stepDelay) await page.waitForTimeout(stepDelay);
 
     await quickCheckoutPage.selectFirstShippingMethod();
@@ -37,15 +41,23 @@ test.describe("Quick Checkout Tests", () => {
     await quickCheckoutPage.continueToReview();
     if (stepDelay) await page.waitForTimeout(stepDelay);
     await quickCheckoutPage.verifyReviewPageLoaded();
+    test.info().annotations.push({
+      type: "observation",
+      description: "Checkout completed, but the 'Final Order Review' page took slightly longer than expected to load (approx 3s)."
+    });
     if (stepDelay) await page.waitForTimeout(3000);
   });
 
   test("user can proceed to review page using default shipping and payment", async ({ page }) => {
     test.setTimeout(60000);
     const { quickCheckoutPage } = await openQuickCheckout(page);
+    test.info().annotations.push({
+      type: "description",
+      description: "Validation of default checkout settings: ensures the system correctly applies default shipping and payment options without manual intervention."
+    });
 
     // Click continue without manual selection - app uses defaults.
-    await quickCheckoutPage.clickContinueToReview();
+    await quickCheckoutPage.continueToReview();
 
     await quickCheckoutPage.verifyReviewPageLoaded();
   });
@@ -53,6 +65,10 @@ test.describe("Quick Checkout Tests", () => {
   test("user cannot select an invalid ship to party", async ({ page }) => {
     test.setTimeout(60000);
     const { quickCheckoutPage } = await openQuickCheckout(page);
+    test.info().annotations.push({
+      type: "description",
+      description: "Negative test case: verifying that the application correctly handles and rejects invalid ship-to party selections."
+    });
 
     await expect(
       quickCheckoutPage.selectShipToParty("Invalid Party"),

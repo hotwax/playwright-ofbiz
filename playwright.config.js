@@ -16,8 +16,17 @@ module.exports = defineConfig({
     ["list"],
     ["html", { open: "never", outputFolder: "playwright-report" }],
     ["allure-playwright", { outputFolder: "allure-results" }],
-    ["monocart-reporter", { name: "My Test Report", outputDir: "monocart-report" }],
-    ["junit", { outputFile: "junit-results/results.xml" }]
+    ["monocart-reporter", { 
+        name: "OFBiz Test Report", 
+        outputFile: "monocart-report/index.html",
+        globalMetadata: {
+            "Release": "v1.0.0-beta",
+            "Environment": "UAT",
+            "Execution Date": new Date().toLocaleString()
+        }
+    }],
+    ["junit", { outputFile: "junit-results/results.xml" }],
+    ["./reporters/custom-summary-reporter.js"]
   ],
   use: {
     baseURL: BASE_URL,

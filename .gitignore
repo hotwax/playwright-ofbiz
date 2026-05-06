@@ -15,6 +15,10 @@ allure-results/
 allure-report/
 monocart-report/
 junit-results/
+custom-report/
+
+# Zipped artifacts
+*.zip
 
 # OS files
 .DS_Store
