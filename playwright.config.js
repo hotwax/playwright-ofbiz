@@ -1,12 +1,23 @@
-require("dotenv/config");
+require("dotenv").config();
 const { defineConfig, devices } = require("@playwright/test");
 
-// The project runs against one shared dev page, so keep the base URL fixed here.
-const BASE_URL = "https://ofbizdemotesting.hotwaxsystems.com/ecommerce/control/newcustomer";
+/**
+ * Read environment variables from .env file.
+ * https://github.com/motdotla/dotenv
+ */
+
+// Priority order for BASE_URL:
+// 1. process.env.BASE_URL (if provided explicitly)
+// 2. process.env.BASE_URL_DEV (if ENV=dev is set)
+// 3. Default fallback to the production URL
+const BASE_URL = process.env.BASE_URL || 
+                 (process.env.ENV === "dev" ? process.env.BASE_URL_DEV : "https://ofbizdemotesting.hotwaxsystems.com/ecommerce/control/main");
+
 const STORAGE_STATE = "playwright/.auth/user.json";
 
 module.exports = defineConfig({
   testDir: "./tests",
+  timeout: 90000,
   // These tests use the same OFBiz user and cart, so run them one at a time.
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -32,7 +43,10 @@ module.exports = defineConfig({
     baseURL: BASE_URL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure"
+    video: "retain-on-failure",
+    launchOptions: {
+      slowMo: 500 // Slows down execution by 500ms per action
+    }
   },
   projects: [
     // Run the login setup first and save the authenticated browser state.
